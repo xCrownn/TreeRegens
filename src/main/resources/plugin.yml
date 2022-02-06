@@ -1,0 +1,11 @@
+name: TreeRegen
+version: '${project.version}'
+main: me.xcrownn.treeregen.TreeRegen
+api-version: 1.17
+authors: [ xCrownn ]
+description: Trees Regenerate after a set amount of time.
+depend:
+  - WorldEdit
+commands:
+  setTree:
+    usage: </command>

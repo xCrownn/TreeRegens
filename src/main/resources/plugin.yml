@@ -6,6 +6,11 @@ authors: [ xCrownn ]
 description: Trees Regenerate after a set amount of time.
 depend:
   - WorldEdit
+  - WorldGuard
+softdepend:
+  - FastAsyncWorldEdit
 commands:
   setTree:
+    usage: </command>
+  removeTree:
     usage: </command>

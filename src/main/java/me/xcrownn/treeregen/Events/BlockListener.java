@@ -12,12 +12,16 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
 import de.leonhard.storage.Json;
 import de.leonhard.storage.Yaml;
 import me.xcrownn.treeregen.TreeRegen;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Tag;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -33,28 +37,33 @@ public class BlockListener implements Listener {
         this.plugin = plugin;
     }
 
-
     @EventHandler
     public void PlayerBreakBlock(BlockBreakEvent event) {
         Player player = event.getPlayer();
 
-        if (Tag.LOGS.isTagged(event.getBlock().getType())) {
+        if (Tag.LOGS.isTagged(event.getBlock().getType()) || Tag.LEAVES.isTagged(event.getBlock().getType())) {
 
             //Grab config files
             Yaml config = new Yaml("Config", "plugins/TreeRegen");
             Json mainFile = new Json("Locations", "plugins/TreeRegen");
             int size = mainFile.getInt("DO_NOT_EDIT");
+            double brokenBlockX = event.getBlock().getLocation().getBlockX();
+            double brokenBlockY = event.getBlock().getLocation().getBlockY();
+            double brokenBlockZ = event.getBlock().getLocation().getBlockZ();
 
             //loop through entries in the "Locations" file and check if the cords align with the block broken
             for (int i = 1; i <= size; i++) {
+                RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+                RegionManager rm = container.get(BukkitAdapter.adapt(player.getWorld()));
                 boolean isStarted = mainFile.getBoolean(i + ".TimerStarted");
                 //Get base tree location
                 double x = mainFile.getDouble(i + ".Tree_Location.X");
                 double y = mainFile.getDouble(i + ".Tree_Location.Y");
                 double z = mainFile.getDouble(i + ".Tree_Location.Z");
+                String rgName = mainFile.getString(i + ".RegionName");
                 //Check for
-                if (x == event.getBlock().getLocation().getBlockX() && z == event.getBlock().getLocation().getBlockZ() && !isStarted) {
 
+                if (!isStarted && rm.getRegion(rgName).contains(BlockVector3.at(brokenBlockX,brokenBlockY,brokenBlockZ))) {
                     int finalI = i;
                     mainFile.set(i + ".TimerStarted", true);
 
@@ -72,7 +81,7 @@ public class BlockListener implements Listener {
 
                     }, config.getInt("Regentime") * 20L);
 
-                    } else System.out.println("Timer is already started");
+                    }
                 }
             }
         }
@@ -100,5 +109,4 @@ public class BlockListener implements Listener {
             e.printStackTrace();
         }
     }
-
 }

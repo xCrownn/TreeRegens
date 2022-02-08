@@ -2,6 +2,7 @@ package me.xcrownn.treeregen;
 
 import de.leonhard.storage.Yaml;
 import me.xcrownn.treeregen.Commands.SetTreeCommand;
+import me.xcrownn.treeregen.Commands.UnSetCommand;
 import me.xcrownn.treeregen.Events.BlockListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -13,13 +14,13 @@ public class TreeRegen extends JavaPlugin {
     public void onEnable() {
         File folder = new File("plugins/TreeRegen/Schematics");
         folder.mkdirs();
-        getCommand("setTree").setExecutor(new SetTreeCommand(this));
+        getCommand("setTree").setExecutor(new SetTreeCommand());
+        getCommand("removeTree").setExecutor(new UnSetCommand());
         getServer().getPluginManager().registerEvents(new BlockListener(this), this);
 
         Yaml config = new Yaml("Config", "plugins/TreeRegen");
 
         config.setDefault("Regentime", 20);
-
     }
 
     @Override

@@ -27,7 +27,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
+import java.awt.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Objects;
 
 public class BlockListener implements Listener {
 
@@ -50,39 +53,39 @@ public class BlockListener implements Listener {
             double brokenBlockX = event.getBlock().getLocation().getBlockX();
             double brokenBlockY = event.getBlock().getLocation().getBlockY();
             double brokenBlockZ = event.getBlock().getLocation().getBlockZ();
+            ArrayList<String> list = (ArrayList<String>) mainFile.getStringList("UUIDTreeConstants");
 
             //loop through entries in the "Locations" file and check if the cords align with the block broken
-            for (int i = 1; i <= size; i++) {
+            for (String string : list) {
                 RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
                 RegionManager rm = container.get(BukkitAdapter.adapt(player.getWorld()));
-                boolean isStarted = mainFile.getBoolean(i + ".TimerStarted");
+                boolean isStarted = mainFile.getBoolean(string + ".TimerStarted");
                 //Get base tree location
-                double x = mainFile.getDouble(i + ".Tree_Location.X");
-                double y = mainFile.getDouble(i + ".Tree_Location.Y");
-                double z = mainFile.getDouble(i + ".Tree_Location.Z");
-                String rgName = mainFile.getString(i + ".RegionName");
+                double x = mainFile.getDouble(string + ".Tree_Location.X");
+                double y = mainFile.getDouble(string + ".Tree_Location.Y");
+                double z = mainFile.getDouble(string + ".Tree_Location.Z");
+                String rgName = mainFile.getString(string + ".RegionName");
                 //Check for
-
-                if (!isStarted && rm.getRegion(rgName).contains(BlockVector3.at(brokenBlockX,brokenBlockY,brokenBlockZ))) {
-                    int finalI = i;
-                    mainFile.set(i + ".TimerStarted", true);
+                if (rm.getRegion(rgName) == null) return;
+                if (!isStarted && Objects.requireNonNull(rm.getRegion(rgName)).contains(BlockVector3.at(brokenBlockX, brokenBlockY, brokenBlockZ))) {
+                    mainFile.set(string + ".TimerStarted", true);
 
                     Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
 
                         //Get file name and location
-                        File schem = new File(plugin.getDataFolder().getAbsolutePath() + "/Schematics/" + mainFile.getString(finalI + ".Schematic_Name") + ".schem");
+                        File schem = new File(plugin.getDataFolder().getAbsolutePath() + "/Schematics/" + mainFile.getString(string + ".Schematic_Name") + ".schem");
                         Location loc = new Location(player.getWorld(), x, y, z + 1);
 
                         //Paste schematic
                         pasteSchematic(schem, loc);
 
                         //Set the timerstarted value back to false
-                        mainFile.set(finalI + ".TimerStarted", false);
+                        mainFile.set(string + ".TimerStarted", false);
 
                     }, config.getInt("Regentime") * 20L);
 
-                    }
                 }
+            }
             }
         }
 
